@@ -36,9 +36,7 @@ telenorAuth := gotelenorauth.NewTelenorAuth(
 			LoginInit:                 "login",                                     // LoginInit is the endpoint for starting a login.
 			LogoutInit:                "logout",                                    // LogoutInit is the endpoint for starting a logout.
 			LoginRedirectURI:          "http://localhost:8080/auth/oauth2callback", // LoginRedirectURI is where the OAuth server redirects after a successful login.
-			LogoutRedirectURI:         "http://localhost:8080/auth/logoutcallback", // LogoutRedirectURI is where the OAuth server redirects after a successful logout.
 			LoginRedirect:             "oauth2callback",                            // LoginRedirect is the endpoint that serves - and is thus typically a suffix of - LoginRedirectURI.
-			LogoutRedirect:            "logoutcallback",                            // LogoutRedirect is the endpoint that serves - and is thus typically a suffix of - LogoutRedirectURI.
 			LoginCompleteRedirectURI:  "/",                                         // LoginCompleteRedirectURI is where go-telenor-auth redirects after a successful login.
 			LogoutCompleteRedirectURI: "/",                                         // LogoutCompleteRedirectURI is where go-telenor-auth redirects after a successfull logout.
 			ProxyPath:                 "/api/",                                     // ProxyPath The path of the API proxy which proxes calls to given host with credentials.
