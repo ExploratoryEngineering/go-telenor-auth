@@ -210,6 +210,7 @@ func (t *TelenorAuth) loginComplete(w http.ResponseWriter, r *http.Request) {
 		Name:     apigeeIDCookieName,
 		Value:    session.id,
 		HttpOnly: true,
+		Secure:   t.Config.UseSecureCookie,
 		Path:     "/",
 	}
 	http.SetCookie(w, cookie)
@@ -288,7 +289,13 @@ func (t *TelenorAuth) logoutComplete(w http.ResponseWriter, r *http.Request) {
 		}
 		// Delete session and cookie before redirecting
 		t.storage.DeleteSession(cookie.Value)
-		http.SetCookie(w, &http.Cookie{Name: apigeeIDCookieName, MaxAge: 0, Expires: time.Now().Add(-1)})
+		http.SetCookie(w, &http.Cookie{
+			Name:    apigeeIDCookieName,
+			MaxAge:  0,
+			Expires: time.Now().Add(-1),
+			Secure:  t.Config.UseSecureCookie,
+			Path:    "/",
+		})
 	}
 }
 
