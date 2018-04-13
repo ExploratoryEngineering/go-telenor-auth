@@ -40,10 +40,8 @@ const (
 	DefaultLoginInit  = "login"
 	DefaultLogoutInit = "logout"
 
-	DefaultLoginRedirectURI  = "http://localhost:8080/auth/oauth2callback"
-	DefaultLogoutRedirectURI = "http://localhost:8080/auth/logoutcallback"
-	DefaultLoginRedirect     = "oauth2callback"
-	DefaultLogoutRedirect    = "logoutcallback"
+	DefaultLoginRedirectURI = "http://localhost:8080/auth/oauth2callback"
+	DefaultLoginRedirect    = "oauth2callback"
 
 	DefaultLoginCompleteRedirectURI  = "/"
 	DefaultLogoutCompleteRedirectURI = "/"
@@ -55,19 +53,23 @@ const (
 
 // ClientConfig holds the Apigee Auth configuration.
 type ClientConfig struct {
-	Host                      string // Host is the name of the Telenor API host to use.
-	ClientID                  string // ClientID is the OAuth client ID.
-	ClientSecret              string // ClientSecret is the client secret.
-	LoginInit                 string // LoginInit is the endpoint for starting a login.
-	LogoutInit                string // LogoutInit is the endpoint for starting a logout.
-	LoginRedirectURI          string // LoginRedirectURI is where the OAuth server redirects after a successful login.
-	LogoutRedirectURI         string // LogoutRedirectURI is where the OAuth server redirects after a successful logout.
-	LoginRedirect             string // LoginRedirect is the endpoint that serves - and is thus typically a suffix of - LoginRedirectURI.
-	LogoutRedirect            string // LogoutRedirect is the endpoint that serves - and is thus typically a suffix of - LogoutRedirectURI.
+	Host string // Host is the name of the Telenor API host to use.
+
+	ClientID     string // ClientID is the OAuth client ID.
+	ClientSecret string // ClientSecret is the client secret.
+
+	LoginInit  string // LoginInit is the endpoint for starting a login.
+	LogoutInit string // LogoutInit is the endpoint for starting a logout.
+
+	LoginRedirectURI string // LoginRedirectURI is where the OAuth server redirects after a successful login.
+	LoginRedirect    string // LoginRedirect is the endpoint that serves - and is thus typically a suffix of - LoginRedirectURI.
+
 	LoginCompleteRedirectURI  string // LoginCompleteRedirectURI is where go-telenor-auth redirects after a successful login.
 	LogoutCompleteRedirectURI string // LogoutCompleteRedirectURI is where go-telenor-auth redirects after a successfull logout.
-	ProxyPath                 string // ProxyPath The path of the API proxy which proxes calls to given host with credentials.
-	UseSecureCookie           bool   // UseSecureCookie indicates whether to use a secure cookie.
+
+	ProxyPath string // ProxyPath The path of the API proxy which proxes calls to given host with credentials.
+
+	UseSecureCookie bool // UseSecureCookie indicates whether to use a secure cookie.
 }
 
 // NewDefaultConfig creates a configuration with default values prepopulated. If the
@@ -92,14 +94,8 @@ func NewDefaultConfig(overrides ClientConfig) ClientConfig {
 	if ret.LoginRedirectURI == "" {
 		ret.LoginRedirectURI = DefaultLoginRedirectURI
 	}
-	if ret.LogoutRedirectURI == "" {
-		ret.LogoutRedirectURI = DefaultLogoutRedirectURI
-	}
 	if ret.LoginRedirect == "" {
 		ret.LoginRedirect = DefaultLoginRedirect
-	}
-	if ret.LogoutRedirect == "" {
-		ret.LogoutRedirect = DefaultLogoutRedirect
 	}
 	if ret.LoginCompleteRedirectURI == "" {
 		ret.LoginCompleteRedirectURI = DefaultLoginCompleteRedirectURI

@@ -248,55 +248,42 @@ func (t *TelenorAuth) isAuthorized(w http.ResponseWriter, r *http.Request) (bool
 
 // Start logout roundtrip
 func (t *TelenorAuth) startLogout(w http.ResponseWriter, r *http.Request) {
-	randombytes := make([]byte, 10)
-	n, err := rand.Read(randombytes)
-	if n != len(randombytes) {
-		log.Printf("Couldn't read more than %d bytes, requested %d", n, len(randombytes))
-	}
-	if err != nil {
-		log.Printf("Got error reading random bytes: %v", err)
-	}
+	session, err := t.getSession(r)
 
-	nonce := hex.EncodeToString(randombytes)
-	if err := t.storage.PutLogoutNonce(nonce); err != nil {
-		log.Printf("Error storing token: %v", err)
-	}
-
-	newURL := buildApigeeURL(t.Config, apigeeLogoutPath)
-	q := newURL.Query()
-	q.Set("client_id", t.Config.ClientID)
-	q.Set("post_logout_redirect_uri", t.Config.LogoutRedirectURI)
-	q.Set("state", nonce)
-	newURL.RawQuery = q.Encode()
-	http.Redirect(w, r, newURL.String(), http.StatusSeeOther)
-}
-
-// Handle the redirect from the OAuth server when the logout is complete.
-func (t *TelenorAuth) logoutComplete(w http.ResponseWriter, r *http.Request) {
-	nonce := r.URL.Query().Get("state")
 	// Redirect to the default logout no matter what
 	defer http.Redirect(w, r, t.Config.LogoutCompleteRedirectURI, http.StatusSeeOther)
-	if nonce != "" {
-		if err := t.storage.CheckLogoutNonce(nonce); err != nil {
-			// Something is broken.
-			return
-		}
-		// Find the user's session
-		cookie, err := r.Cookie(apigeeIDCookieName)
-		if cookie == nil || err != nil {
-			// Something is broken. Redirect to logout
-			return
-		}
-		// Delete session and cookie before redirecting
-		t.storage.DeleteSession(cookie.Value)
-		http.SetCookie(w, &http.Cookie{
-			Name:    apigeeIDCookieName,
-			MaxAge:  0,
-			Expires: time.Now().Add(-1),
-			Secure:  t.Config.UseSecureCookie,
-			Path:    "/",
-		})
+
+	if err != nil {
+		log.Printf("Tried to log out with no session: %s", err)
+		return
 	}
+
+	logoutURL := buildApigeeURL(t.Config, apigeeLogoutPath)
+
+	logoutReq, err := http.NewRequest("GET", logoutURL.String(), nil)
+	logoutReq.Header.Set("Authorization", "Bearer "+session.accessToken)
+	logoutReq.Header.Set("user-agent", proxyUserAgent)
+
+	logoutRes, err := APIClient.Do(logoutReq)
+
+	if logoutRes.StatusCode == http.StatusOK {
+		log.Println("Successfully logged out user")
+	}
+
+	if err != nil {
+		log.Printf("Failed to request logout from server. %s", err)
+		log.Println("Still removing session from our end")
+	}
+
+	// Remove session from storage and delete potential cookie
+	t.storage.DeleteSession(session.id)
+	http.SetCookie(w, &http.Cookie{
+		Name:    apigeeIDCookieName,
+		MaxAge:  0,
+		Expires: time.Now().Add(-1),
+		Secure:  t.Config.UseSecureCookie,
+		Path:    "/",
+	})
 }
 
 type apigeeAuthHandler struct {
@@ -316,10 +303,6 @@ func (c *apigeeAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.auth.startLogout(w, r)
 		return
 	}
-	if strings.HasSuffix(r.URL.Path, c.auth.Config.LogoutRedirect) {
-		c.auth.logoutComplete(w, r)
-		return
-	}
 	log.Printf("Got auth request to %s but I don't know how to handle it.", r.URL.Path)
 	http.Redirect(w, r, c.auth.Config.LogoutCompleteRedirectURI, http.StatusSeeOther)
 }
@@ -329,7 +312,6 @@ func (c *apigeeAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //   Config.LoginInit to start a login roundtrip towards the OAuth server
 //   Config.LoginRedirect for the OAuth redirect when login is complete
 //   Config.LogoutInit to start a logout roundtrip towards the OAuth server
-//   Config.LogoutRedirect for the OAuth redirect when logout is complete
 //
 // The Init endpoints are the ones you navigate to to initiate the action.
 // The Redirect endpoints are redirected to from the OAuth server when it is complete.

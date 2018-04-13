@@ -60,12 +60,6 @@ type Storage interface {
 	// Retrieve and remove nonce (if it exists) from storage
 	CheckLoginNonce(token string) error
 
-	// Add state nonce to storage. This is disposable and will expire in 20 minutes
-	PutLogoutNonce(token string) error
-
-	// Retrieve and remove nonce (if it exists) from storage
-	CheckLogoutNonce(token string) error
-
 	// PutSession creates a new session identifier and stores
 	// the information in a session structure
 	PutSession(session Session) error
