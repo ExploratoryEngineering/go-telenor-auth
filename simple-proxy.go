@@ -59,7 +59,7 @@ type JSONErrorMessage struct {
 }
 
 func (c *apiProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%v", r.URL)
+	log.Printf("Proxying %v", r.URL)
 
 	session, err := c.auth.getSession(r)
 
