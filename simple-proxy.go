@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 )
 
@@ -85,11 +84,7 @@ func (c *apiProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	apiReq.Header.Set("user-agent", proxyUserAgent)
 	copyHeader(apiReq.Header, r.Header)
 
-	reqDump, _ := httputil.DumpRequest(apiReq, true)
-	log.Println(string(reqDump))
 	externalRes, err := APIClient.Do(apiReq)
-	resDump, _ := httputil.DumpResponse(externalRes, true)
-	log.Println(string(resDump))
 
 	if err != nil {
 		log.Println(err)
